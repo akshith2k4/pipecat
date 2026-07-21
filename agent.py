@@ -218,11 +218,13 @@ async def bot(runner_args: RunnerArguments):
         ),
     )
 
-    # --- ULTRA-FAST TTS (Cartesia Sonic Multilingual) ---
+    # --- ULTRA-FAST TTS (Cartesia Sonic-3) ---
     tts = CartesiaTTSService(
         api_key=os.getenv("CARTESIA_API_KEY"),
-        voice_id="79a125e8-cd45-4c13-8a67-188112f4dd22",
-        model="sonic-multilingual",
+        settings=CartesiaTTSService.Settings(
+            model="sonic-3",
+            voice="79a125e8-cd45-4c13-8a67-188112f4dd22",
+        ),
     )
 
     # Groq LLM settings - Consider switching model to "llama-3.1-8b-instant" if latency remains a priority.
