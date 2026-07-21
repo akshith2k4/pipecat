@@ -211,7 +211,7 @@ async def bot(runner_args: RunnerArguments):
         api_key=os.getenv("DEEPGRAM_API_KEY"),
         live_options=LiveOptions(
             model="nova-3",
-            language="hi",
+            language="unknown",
             smart_format=True,
             punctuate=True,
             interim_results=True,
