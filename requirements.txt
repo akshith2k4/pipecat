@@ -1,0 +1,8 @@
+pipecat-ai[websocket,sarvam]
+python-dotenv
+loguru
+fastapi
+uvicorn
+twilio
+python-multipart
+
