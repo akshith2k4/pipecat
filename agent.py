@@ -24,7 +24,7 @@ from pipecat.processors.aggregators.llm_response_universal import (
 from pipecat.runner.types import RunnerArguments
 from pipecat.runner.utils import create_transport
 from pipecat.runner.run import app
-from pipecat.services.deepgram.stt import DeepgramSTTService, LiveOptions
+from pipecat.services.deepgram.stt import DeepgramSTTService
 from pipecat.services.cartesia.tts import CartesiaTTSService
 from pipecat.services.groq.llm import GroqLLMService
 from pipecat.transports.websocket.fastapi import FastAPIWebsocketParams
@@ -206,12 +206,12 @@ async def bot(runner_args: RunnerArguments):
     )
     vad_processor = VADProcessor(vad_analyzer=vad_analyzer)
 
-    # --- ULTRA-FAST STT (Deepgram Nova-3) ---
+    # --- ULTRA-FAST MULTILINGUAL STT (Deepgram Nova-3) ---
     stt = DeepgramSTTService(
         api_key=os.getenv("DEEPGRAM_API_KEY"),
-        live_options=LiveOptions(
+        settings=DeepgramSTTService.Settings(
             model="nova-3",
-            language="unknown",
+            language="multi",
             smart_format=True,
             punctuate=True,
             interim_results=True,
