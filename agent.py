@@ -24,8 +24,8 @@ from pipecat.processors.aggregators.llm_response_universal import (
 from pipecat.runner.types import RunnerArguments
 from pipecat.runner.utils import create_transport
 from pipecat.runner.run import app
-from pipecat.services.sarvam.stt import SarvamSTTService
-from pipecat.services.sarvam.tts import SarvamTTSService
+from pipecat.services.deepgram.stt import DeepgramSTTService, LiveOptions
+from pipecat.services.cartesia.tts import CartesiaTTSService
 from pipecat.services.groq.llm import GroqLLMService
 from pipecat.transports.websocket.fastapi import FastAPIWebsocketParams
 
@@ -200,33 +200,29 @@ async def bot(runner_args: RunnerArguments):
         f"Hi, this is Krish from LinenGrass. Am I speaking to {contact_name}?"
     )
 
-    # --- OPTIMIZED VAD SETTINGS ---
-    # stop_secs set to 0.8s to allow longer natural pauses in user speech.
+    # --- ULTRA-LOW LATENCY VAD SETTINGS ---
     vad_analyzer = SileroVADAnalyzer(
-        params=VADParams(start_secs=0.2, stop_secs=0.8, confidence=0.7)
+        params=VADParams(start_secs=0.2, stop_secs=0.3, confidence=0.7)
     )
     vad_processor = VADProcessor(vad_analyzer=vad_analyzer)
 
-    # Initialize AI services
-    stt = SarvamSTTService(
-        api_key=os.getenv("SARVAM_API_KEY"),
-        mode="codemix",
-        settings=SarvamSTTService.Settings(
-            model="saaras:v3",
-            language="hi-IN",
+    # --- ULTRA-FAST STT (Deepgram Nova-3) ---
+    stt = DeepgramSTTService(
+        api_key=os.getenv("DEEPGRAM_API_KEY"),
+        live_options=LiveOptions(
+            model="nova-3",
+            language="hi",
+            smart_format=True,
+            punctuate=True,
+            interim_results=True,
         ),
     )
 
-    # --- OPTIMIZED TTS SETTINGS ---
-    tts = SarvamTTSService(
-        api_key=os.getenv("SARVAM_API_KEY"),
-        settings=SarvamTTSService.Settings(
-            model="bulbul:v3",
-            voice="shubh",
-            language="hi-IN",
-            pace=1.0,
-            min_buffer_size=50,
-        ),
+    # --- ULTRA-FAST TTS (Cartesia Sonic Multilingual) ---
+    tts = CartesiaTTSService(
+        api_key=os.getenv("CARTESIA_API_KEY"),
+        voice_id="79a125e8-cd45-4c13-8a67-188112f4dd22",
+        model="sonic-multilingual",
     )
 
     # Groq LLM settings - Consider switching model to "llama-3.1-8b-instant" if latency remains a priority.

@@ -1,8 +1,9 @@
 pipecat-ai[websocket,sarvam]
+deepgram-sdk
+cartesia
 python-dotenv
 loguru
 fastapi
 uvicorn
 twilio
 python-multipart
-
