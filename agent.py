@@ -38,7 +38,6 @@ class CustomSarvamTTSService(SarvamTTSService):
             raise Exception("WebSocket not connected")
         config_data = {
             "target_language_code": self._settings.language,
-            "speaker": self._settings.voice,
             "speech_sample_rate": self._speech_sample_rate,
             "enable_preprocessing": self._settings.enable_preprocessing,
             "min_buffer_size": self._settings.min_buffer_size,
@@ -50,6 +49,8 @@ class CustomSarvamTTSService(SarvamTTSService):
         }
         if "-" in str(self._settings.voice):
             config_data["speaker_id"] = self._settings.voice
+        else:
+            config_data["speaker"] = self._settings.voice
 
         if self._settings.pitch is not None:
             config_data["pitch"] = self._settings.pitch
