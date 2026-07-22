@@ -209,13 +209,13 @@ async def bot(runner_args: RunnerArguments):
     )
     vad_processor = VADProcessor(vad_analyzer=vad_analyzer)
 
-    # Initialize Sarvam AI services for Telugu (te-IN)
+    # Initialize Sarvam AI services (Multilingual STT + Telugu TTS)
     stt = SarvamSTTService(
         api_key=os.getenv("SARVAM_API_KEY"),
         mode="codemix",
         settings=SarvamSTTService.Settings(
             model="saaras:v3",
-            language="te-IN",
+            language="unknown",
         ),
     )
 
