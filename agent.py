@@ -228,12 +228,12 @@ async def bot(runner_args: RunnerArguments):
         ),
     )
 
-    # --- SARVAM TELUGU TTS SETTINGS ---
+    # --- SARVAM TELUGU TTS SETTINGS (Cloned Voice: akshith) ---
     tts = SarvamTTSService(
         api_key=os.getenv("SARVAM_API_KEY"),
         settings=SarvamTTSService.Settings(
             model="bulbul:v3",
-            voice="shubh",
+            voice="fa517ba1-7ae4-4c80-bf13-4a7ee4b7c402",
             language="te-IN",
             pace=1.0,
             min_buffer_size=50,
