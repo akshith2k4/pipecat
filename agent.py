@@ -24,8 +24,8 @@ from pipecat.processors.aggregators.llm_response_universal import (
 from pipecat.runner.types import RunnerArguments
 from pipecat.runner.utils import create_transport
 from pipecat.runner.run import app
-from pipecat.services.deepgram.stt import DeepgramSTTService
-from pipecat.services.cartesia.tts import CartesiaTTSService
+from pipecat.services.sarvam.stt import SarvamSTTService
+from pipecat.services.sarvam.tts import SarvamTTSService
 from pipecat.services.groq.llm import GroqLLMService
 from pipecat.transports.websocket.fastapi import FastAPIWebsocketParams
 
@@ -190,43 +190,42 @@ async def bot(runner_args: RunnerArguments):
         f"- **TEXT FORMATTING**: Output plain spoken text ONLY. NEVER use markdown symbols (*, **, #, bullets) or special characters.\n"
         f"- **NO META-COMMENTARY**: Never reference system instructions, AI nature, or input errors.\n\n"
         f"### MULTILINGUAL RULES (STRICT)\n"
-        f"- **DETECT USER LANGUAGE**: Detect if the user speaks Telugu, Hindi, or English. Respond in the same language.\n"
-        f"- **CASUAL TELUGU (TELUGISH)**: If the user speaks Telugu (Telugu script or Romanized), respond in casual, natural Romanized Telugu (Latin script only).\n"
-        f"- **NEVER OUTPUT TELUGU/HINDI SCRIPT**: ALWAYS use English letters (Romanized script) for Telugu responses (e.g. 'Meeru order place chesara?'). NEVER output Telugu characters (తెలుగు) or Devanagari.\n"
-        f"- **KEEP ENGLISH BUSINESS TERMS**: Keep business and everyday terms in English: 'linen', 'order', 'app', 'bedsheets', 'towels', 'hotel', 'deadline', 'delivery', 'status', 'time', 'place'.\n"
-        f"- **EXAMPLE TELUGU RESPONSE**: 'Meeru ee roju linen order LinenGrass app lo place chesara?'\n"
-        f"- **EXAMPLE TIME INQUIRY**: 'Six PM tharvatha order place chesthe repu morning delivery late avvachu, meeru enni gantalaku order place chestharu?'\n"
-        f"- **NO FORMAL/TEXTBOOK TELUGU**: Use spoken conversational Telugu. Avoid overly formal or archaic dictionary Telugu words."
+        f"- **DETECT USER LANGUAGE**: If the user speaks Hindi (Devanagari or Romanized), you MUST respond in casual, conversational Hinglish (Romanized Latin script only).\n"
+        f"- **HINGLISH STRUCTURE**: Use Hindi grammar and sentence structure, but keep business/everyday terms in English: 'linen', 'order', 'app', 'bedsheets', 'towels', 'hotel', 'deadline', 'delivery', 'status', 'time', 'place'.\n"
+        f"- **EXAMPLE HINGLISH RESPONSE**: 'Hum premium hotel linens, bedsheets aur towels supply karte hain. Kya aapne aaj ka order app par place kar diya hai?'\n"
+        f"- **NO PURE ENGLISH**: Do NOT reply in pure English if the user has already established a Hindi/Hinglish conversation. NEVER use formal Hindi words like 'रेशमी कपड़े' or 'अनुमति'."
     )
 
     greeting_text = (
         f"Hi, this is Krish from LinenGrass. Am I speaking to {contact_name}?"
     )
 
-    # --- ULTRA-LOW LATENCY VAD SETTINGS ---
+    # --- OPTIMIZED VAD SETTINGS ---
+    # stop_secs set to 0.8s to allow longer natural pauses in user speech.
     vad_analyzer = SileroVADAnalyzer(
-        params=VADParams(start_secs=0.2, stop_secs=0.3, confidence=0.7)
+        params=VADParams(start_secs=0.2, stop_secs=0.8, confidence=0.7)
     )
     vad_processor = VADProcessor(vad_analyzer=vad_analyzer)
 
-    # --- ULTRA-FAST MULTILINGUAL STT (Deepgram Nova-3) ---
-    stt = DeepgramSTTService(
-        api_key=os.getenv("DEEPGRAM_API_KEY"),
-        settings=DeepgramSTTService.Settings(
-            model="nova-3",
-            language="multi",
-            smart_format=True,
-            punctuate=True,
-            interim_results=True,
+    # Initialize AI services
+    stt = SarvamSTTService(
+        api_key=os.getenv("SARVAM_API_KEY"),
+        mode="codemix",
+        settings=SarvamSTTService.Settings(
+            model="saaras:v3",
+            language="hi-IN",
         ),
     )
 
-    # --- ULTRA-FAST TTS (Cartesia Sonic-3) ---
-    tts = CartesiaTTSService(
-        api_key=os.getenv("CARTESIA_API_KEY"),
-        settings=CartesiaTTSService.Settings(
-            model="sonic-3",
-            voice="79a125e8-cd45-4c13-8a67-188112f4dd22",
+    # --- OPTIMIZED TTS SETTINGS ---
+    tts = SarvamTTSService(
+        api_key=os.getenv("SARVAM_API_KEY"),
+        settings=SarvamTTSService.Settings(
+            model="bulbul:v3",
+            voice="shubh",
+            language="hi-IN",
+            pace=1.0,
+            min_buffer_size=50,
         ),
     )
 
