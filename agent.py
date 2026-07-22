@@ -229,7 +229,7 @@ async def bot(runner_args: RunnerArguments):
         api_key=os.getenv("SARVAM_API_KEY"),
         settings=SarvamTTSService.Settings(
             model="bulbul:v3",
-            voice="gokul",
+            voice="shubh",
             language="te-IN",
             pace=1.0,
             min_buffer_size=50,
@@ -241,7 +241,7 @@ async def bot(runner_args: RunnerArguments):
         api_key=os.getenv("GROQ_API_KEY"),
         settings=GroqLLMService.Settings(
             model="llama-3.3-70b-versatile",
-            max_tokens=80,
+            max_tokens=150,
         ),
     )
 
