@@ -224,7 +224,7 @@ async def bot(runner_args: RunnerArguments):
         api_key=os.getenv("SARVAM_API_KEY"),
         settings=SarvamTTSService.Settings(
             model="bulbul:v3",
-            voice="shubh",
+            voice="gokul",
             language="te-IN",
             pace=1.0,
             min_buffer_size=50,
