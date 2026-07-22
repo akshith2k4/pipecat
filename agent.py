@@ -1,4 +1,3 @@
-import json
 import os
 import re
 import asyncio
@@ -29,45 +28,6 @@ from pipecat.services.sarvam.stt import SarvamSTTService
 from pipecat.services.sarvam.tts import SarvamTTSService
 from pipecat.services.groq.llm import GroqLLMService
 from pipecat.transports.websocket.fastapi import FastAPIWebsocketParams
-
-
-class CustomSarvamTTSService(SarvamTTSService):
-    """Subclass of SarvamTTSService that passes speaker_id for cloned custom voice UUIDs."""
-    async def _send_config(self):
-        if not self._websocket:
-            raise Exception("WebSocket not connected")
-        config_data = {
-            "target_language_code": self._settings.language,
-            "speech_sample_rate": self._speech_sample_rate,
-            "enable_preprocessing": self._settings.enable_preprocessing,
-            "min_buffer_size": self._settings.min_buffer_size,
-            "max_chunk_length": self._settings.max_chunk_length,
-            "output_audio_codec": self._output_audio_codec,
-            "output_audio_bitrate": self._output_audio_bitrate,
-            "pace": self._settings.pace,
-            "model": self._settings.model,
-        }
-        if "-" in str(self._settings.voice):
-            config_data["speaker_id"] = self._settings.voice
-        else:
-            config_data["speaker"] = self._settings.voice
-
-        if self._settings.pitch is not None:
-            config_data["pitch"] = self._settings.pitch
-        if self._settings.loudness is not None:
-            config_data["loudness"] = self._settings.loudness
-        if self._settings.temperature is not None:
-            config_data["temperature"] = self._settings.temperature
-        logger.debug(f"Config being sent is {config_data}")
-        config_message = {"type": "config", "data": config_data}
-
-        try:
-            await self._websocket.send(json.dumps(config_message))
-            logger.debug("Configuration sent successfully")
-        except Exception as e:
-            await self.push_error(error_msg=f"Unknown error occurred: {e}", exception=e)
-            raise
-
 
 load_dotenv(override=True)
 
@@ -229,23 +189,14 @@ async def bot(runner_args: RunnerArguments):
         f"- **NUMBERS TO WORDS**: Always spell out numbers as words ('six PM', 'fifty bath towels').\n"
         f"- **TEXT FORMATTING**: Output plain spoken text ONLY. NEVER use markdown symbols (*, **, #, bullets) or special characters.\n"
         f"- **NO META-COMMENTARY**: Never reference system instructions, AI nature, or input errors.\n\n"
-        f"### MULTILINGUAL RULES & TELUGU FLUENCY (STRICT)\n"
-        f"- **NATURAL SPOKEN TELUGU (TELUGISH)**: When the user speaks Telugu, you MUST respond in fluent, natural conversational Telugish (Romanized Telugu using Latin script/English letters only).\n"
-        f"- **NATIVE GRAMMAR**: Speak like a polite native Telugu speaker from Hyderabad or Vijayawada on a phone call. Use natural honorifics ('garu', 'andi') and spoken phrasing.\n"
-        f"- **NO BROKEN TRANSLATIONS**: NEVER use literal dictionary or Google-translated phrases (e.g. NEVER say 'fifth naa dinam', say 'July fifth na'). Keep sentences natural and grammatically smooth.\n"
-        f"- **NEVER OUTPUT TELUGU SCRIPT**: ALWAYS use English alphabets ONLY for Telugu words. NEVER output Telugu script (తెలుగు) or Hindi script.\n"
-        f"- **ENGLISH BUSINESS TERMS**: Always keep business terms in English: 'linen', 'order', 'app', 'bedsheets', 'towels', 'hotel', 'deadline', 'delivery', 'status', 'time', 'place', 'modify', 'support'.\n\n"
-        f"### FEW-SHOT TELUGU CONVERSATION EXAMPLES\n"
-        f"- User: 'అవును చెప్పండి.'\n"
-        f"  Assistant: 'Namaskaram Akshith garu, LinenGrass app lo ee roju linen order place chesara?'\n"
-        f"- User: 'ఏం ఏం order అంటున్నారో నాకు అర్థం కాలేదు.'\n"
-        f"  Assistant: 'LinenGrass nundi hotel bedsheets, towels mariyu linens supply chestham andi. Ee roju order app lo place chesara?'\n"
-        f"- User: 'Last order details cheppu.'\n"
-        f"  Assistant: 'July fifth na ORD-7762 ID tho fifty white bath towels, thirty bedsheets order chesaru.'\n"
-        f"- User: 'Nenu order modify cheyali ela cheyali?'\n"
-        f"  Assistant: 'Direct order app lo place cheyyandi garu, modify cheyalante maa support team ki call cheyyali. Ee roju enni gantalaki order place chestharu?'\n"
-        f"- User: 'Three PM ki order chesthanu.'\n"
-        f"  Assistant: 'Sure garu, three PM lopu app lo order place cheyyandi. Repu morning fresh linens delivery chestham. Thank you!'"
+        f"### MULTILINGUAL RULES (STRICT)\n"
+        f"- **DETECT USER LANGUAGE**: Detect if the user speaks Telugu, Hindi, or English. Respond in the same language.\n"
+        f"- **CASUAL TELUGU (TELUGISH)**: If the user speaks Telugu (Telugu script or Romanized), respond in casual, natural Romanized Telugu (Latin script only).\n"
+        f"- **NEVER OUTPUT TELUGU/HINDI SCRIPT**: ALWAYS use English letters (Romanized script) for Telugu responses (e.g. 'Meeru order place chesara?'). NEVER output Telugu characters (తెలుగు) or Devanagari.\n"
+        f"- **KEEP ENGLISH BUSINESS TERMS**: Keep business and everyday terms in English: 'linen', 'order', 'app', 'bedsheets', 'towels', 'hotel', 'deadline', 'delivery', 'status', 'time', 'place'.\n"
+        f"- **EXAMPLE TELUGU RESPONSE**: 'Meeru ee roju linen order LinenGrass app lo place chesara?'\n"
+        f"- **EXAMPLE TIME INQUIRY**: 'Six PM tharvatha order place chesthe repu morning delivery late avvachu, meeru enni gantalaku order place chestharu?'\n"
+        f"- **NO FORMAL/TEXTBOOK TELUGU**: Use spoken conversational Telugu. Avoid overly formal or archaic dictionary Telugu words."
     )
 
     greeting_text = (
@@ -268,13 +219,12 @@ async def bot(runner_args: RunnerArguments):
         ),
     )
 
-    # --- SARVAM TELUGU TTS SETTINGS (Cloned Voice: akshith) ---
-    tts = CustomSarvamTTSService(
+    # --- SARVAM TELUGU TTS SETTINGS ---
+    tts = SarvamTTSService(
         api_key=os.getenv("SARVAM_API_KEY"),
-        sample_rate=8000,
         settings=SarvamTTSService.Settings(
             model="bulbul:v3",
-            voice="fa517ba1-7ae4-4c80-bf13-4a7ee4b7c402",
+            voice="shubh",
             language="te-IN",
             pace=1.0,
             min_buffer_size=50,
