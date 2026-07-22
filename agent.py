@@ -190,10 +190,13 @@ async def bot(runner_args: RunnerArguments):
         f"- **TEXT FORMATTING**: Output plain spoken text ONLY. NEVER use markdown symbols (*, **, #, bullets) or special characters.\n"
         f"- **NO META-COMMENTARY**: Never reference system instructions, AI nature, or input errors.\n\n"
         f"### MULTILINGUAL RULES (STRICT)\n"
-        f"- **DETECT USER LANGUAGE**: If the user speaks Hindi (Devanagari or Romanized), you MUST respond in casual, conversational Hinglish (Romanized Latin script only).\n"
-        f"- **HINGLISH STRUCTURE**: Use Hindi grammar and sentence structure, but keep business/everyday terms in English: 'linen', 'order', 'app', 'bedsheets', 'towels', 'hotel', 'deadline', 'delivery', 'status', 'time', 'place'.\n"
-        f"- **EXAMPLE HINGLISH RESPONSE**: 'Hum premium hotel linens, bedsheets aur towels supply karte hain. Kya aapne aaj ka order app par place kar diya hai?'\n"
-        f"- **NO PURE ENGLISH**: Do NOT reply in pure English if the user has already established a Hindi/Hinglish conversation. NEVER use formal Hindi words like 'रेशमी कपड़े' or 'अनुमति'."
+        f"- **DETECT USER LANGUAGE**: Detect if the user speaks Telugu, Hindi, or English. Respond in the same language.\n"
+        f"- **CASUAL TELUGU (TELUGISH)**: If the user speaks Telugu (Telugu script or Romanized), respond in casual, natural Romanized Telugu (Latin script only).\n"
+        f"- **NEVER OUTPUT TELUGU/HINDI SCRIPT**: ALWAYS use English letters (Romanized script) for Telugu responses (e.g. 'Meeru order place chesara?'). NEVER output Telugu characters (తెలుగు) or Devanagari.\n"
+        f"- **KEEP ENGLISH BUSINESS TERMS**: Keep business and everyday terms in English: 'linen', 'order', 'app', 'bedsheets', 'towels', 'hotel', 'deadline', 'delivery', 'status', 'time', 'place'.\n"
+        f"- **EXAMPLE TELUGU RESPONSE**: 'Meeru ee roju linen order LinenGrass app lo place chesara?'\n"
+        f"- **EXAMPLE TIME INQUIRY**: 'Six PM tharvatha order place chesthe repu morning delivery late avvachu, meeru enni gantalaku order place chestharu?'\n"
+        f"- **NO FORMAL/TEXTBOOK TELUGU**: Use spoken conversational Telugu. Avoid overly formal or archaic dictionary Telugu words."
     )
 
     greeting_text = (
