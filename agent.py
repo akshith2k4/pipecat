@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import asyncio
@@ -28,6 +29,44 @@ from pipecat.services.sarvam.stt import SarvamSTTService
 from pipecat.services.sarvam.tts import SarvamTTSService
 from pipecat.services.groq.llm import GroqLLMService
 from pipecat.transports.websocket.fastapi import FastAPIWebsocketParams
+
+
+class CustomSarvamTTSService(SarvamTTSService):
+    """Subclass of SarvamTTSService that passes speaker_id for cloned custom voice UUIDs."""
+    async def _send_config(self):
+        if not self._websocket:
+            raise Exception("WebSocket not connected")
+        config_data = {
+            "target_language_code": self._settings.language,
+            "speaker": self._settings.voice,
+            "speech_sample_rate": self._speech_sample_rate,
+            "enable_preprocessing": self._settings.enable_preprocessing,
+            "min_buffer_size": self._settings.min_buffer_size,
+            "max_chunk_length": self._settings.max_chunk_length,
+            "output_audio_codec": self._output_audio_codec,
+            "output_audio_bitrate": self._output_audio_bitrate,
+            "pace": self._settings.pace,
+            "model": self._settings.model,
+        }
+        if "-" in str(self._settings.voice):
+            config_data["speaker_id"] = self._settings.voice
+
+        if self._settings.pitch is not None:
+            config_data["pitch"] = self._settings.pitch
+        if self._settings.loudness is not None:
+            config_data["loudness"] = self._settings.loudness
+        if self._settings.temperature is not None:
+            config_data["temperature"] = self._settings.temperature
+        logger.debug(f"Config being sent is {config_data}")
+        config_message = {"type": "config", "data": config_data}
+
+        try:
+            await self._websocket.send(json.dumps(config_message))
+            logger.debug("Configuration sent successfully")
+        except Exception as e:
+            await self.push_error(error_msg=f"Unknown error occurred: {e}", exception=e)
+            raise
+
 
 load_dotenv(override=True)
 
@@ -229,7 +268,7 @@ async def bot(runner_args: RunnerArguments):
     )
 
     # --- SARVAM TELUGU TTS SETTINGS (Cloned Voice: akshith) ---
-    tts = SarvamTTSService(
+    tts = CustomSarvamTTSService(
         api_key=os.getenv("SARVAM_API_KEY"),
         settings=SarvamTTSService.Settings(
             model="bulbul:v3",
