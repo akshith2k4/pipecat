@@ -271,6 +271,7 @@ async def bot(runner_args: RunnerArguments):
     # --- SARVAM TELUGU TTS SETTINGS (Cloned Voice: akshith) ---
     tts = CustomSarvamTTSService(
         api_key=os.getenv("SARVAM_API_KEY"),
+        sample_rate=8000,
         settings=SarvamTTSService.Settings(
             model="bulbul:v3",
             voice="fa517ba1-7ae4-4c80-bf13-4a7ee4b7c402",
